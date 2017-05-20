@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+require 'rack'
+require 'rocket_fuel-peer_finder'
+require 'json'
+
+if ENV['DOCKER_SOCKET']
+  cif_class = ClusterIpFinder::DockerComposeCusterFinder
+else
+  cif_class = ClusterIpFinder::AutoScalingGroupCusterFinder
+end
+
+app = Proc.new do |env|
+    ['200', {'Content-Type' => 'application/json'}, [JSON.generate(cif_class.new.ips_of_peers)]]
+end
+
+Rack::Handler::WEBrick.run (app, :Port => 425364)
